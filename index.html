@@ -23,7 +23,7 @@ label.incorrect { background: rgba(239,68,68,0.3); border: 1px solid #ef4444; }
 <h2>Cuestionario Interactivo de Estática - Lectura 2</h2>
 <p>Ejercicios aplicativos de R2 y R3: vectores, fuerzas, momentos, reacciones y cargas distribuidas.</p>
 
-<div id="timer">Tiempo: 50 s</div>
+<div id="timer">Tiempo: 60 s</div>
 <div id="formulaBox"></div>
 <div id="question" class="question"></div>
 <form id="answers" class="quiz-form" autocomplete="off"></form>
@@ -31,9 +31,11 @@ label.incorrect { background: rgba(239,68,68,0.3); border: 1px solid #ef4444; }
 <div id="result"></div>
 
 <script>
-// Aquí van las 40 preguntas formateadas de la Lectura 2
+// 40 preguntas de la Lectura 2
 const questions = [
-    // Ejemplo de pregunta, reemplaza con tus 40 preguntas
+    /* Aquí debes pegar las 40 preguntas en formato JSON:
+       Cada pregunta debe tener: tema, dif, q, opts, ans, exp
+       Por ejemplo: */
     {
         "tema":"Vectores en R2",
         "dif":"Básica aplicada",
@@ -49,11 +51,10 @@ const questions = [
         "opts":["50 N","70 N","10 N","100 N"],
         "ans":0,
         "exp":"|F| = √(40² + 30²) = 50 N."
-    },
-    // Inserta aquí las otras 38 preguntas de Lectura 2
+    }
+    // Agrega las otras 38 preguntas siguiendo el mismo formato
 ];
 
-// Fórmulas por tema
 const formulaByTopic = {
     "Vectores en R2":[["Fx = F cosθ","Componente horizontal."],["Fy = F senθ","Componente vertical."],["F = √(Fx² + Fy²)","Magnitud en R2."]],
     "Vectores en R3":[["F = Fxi + Fyj + Fzk","Forma cartesiana."],["|F| = √(Fx² + Fy² + Fz²)","Magnitud R3."],["F = |F| u","Fuerza desde magnitud y dirección."]],
@@ -66,25 +67,25 @@ const formulaByTopic = {
 
 let current=0;
 let score=0;
-let timer=50;
+let timer=60; // 1 minuto por pregunta
 let interval=null;
 
 const $ = id => document.getElementById(id);
 
 function startTimer() {
-    timer=50;
+    timer=60;
     $("timer").textContent = "Tiempo: "+timer+" s";
     interval = setInterval(()=>{
         timer--;
         $("timer").textContent = "Tiempo: "+timer+" s";
-        if(timer<=0) { clearInterval(interval); selectAnswer(null); }
+        if(timer<=0){ clearInterval(interval); selectAnswer(null); }
     },1000);
 }
 
 function renderFormulaBox(topic) {
     const box = $("formulaBox");
     const formulas = formulaByTopic[topic] || [];
-    if(formulas.length==0){box.style.display="none"; box.innerHTML=""; return;}
+    if(formulas.length==0){ box.style.display="none"; box.innerHTML=""; return; }
     box.style.display="block";
     box.innerHTML = `<h3>Fórmulas útiles para esta pregunta</h3><div class="formula-grid">`+
         formulas.map(f=>`<div class="formula"><code>${f[0]}</code><small>${f[1]}</small></div>`).join('')+
@@ -92,7 +93,7 @@ function renderFormulaBox(topic) {
 }
 
 function showQuestion() {
-    if(current>=questions.length){showResult(); return;}
+    if(current>=questions.length){ showResult(); return; }
     const q = questions[current];
     $("question").textContent = q.q;
     renderFormulaBox(q.tema);
@@ -135,6 +136,5 @@ function showResult() {
 
 showQuestion();
 </script>
-
 </body>
 </html>
