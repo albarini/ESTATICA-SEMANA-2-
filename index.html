@@ -1,140 +1,232 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Cuestionario Interactivo de Estática - Lectura 2</title>
-<style>
-body { background: #0f172a; color: #f1f5f9; font-family: sans-serif; padding: 20px; }
-.question { font-size: 1.2rem; margin-bottom: 10px; }
-.quiz-form { display: grid; gap: 12px; margin-bottom: 20px; }
-label.answer { background: rgba(31,41,55,0.9); padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; }
-label.answer input { transform: scale(1.2); margin-right: 8px; accent-color: #38bdf8; }
-label.correct { background: rgba(34,197,94,0.3); border: 1px solid #22c55e; }
-label.incorrect { background: rgba(239,68,68,0.3); border: 1px solid #ef4444; }
-#timer { font-size: 1.2rem; margin-bottom: 20px; }
-#formulaBox { margin: 16px 0; padding: 16px; border-radius: 10px; background: rgba(14,116,144,0.12); display: none; }
-.formula-grid { display: grid; gap: 10px; }
-.formula { background: rgba(15,23,42,0.7); padding: 8px; border-radius: 8px; font-family: monospace; }
-#result { margin-top: 20px; font-size: 1.2rem; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPERACIÓN 20/20 - ESTÁTICA</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0d1117; color: #c9d1d9; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .card { background-color: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        h1, h2 { color: #58a6ff; text-align: center; }
+        .timer { font-size: 24px; font-weight: bold; color: #ff7b72; text-align: center; margin-bottom: 15px; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        button { background-color: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 12px; border-radius: 6px; cursor: pointer; transition: 0.2s; font-size: 16px; text-align: left; }
+        button:hover { background-color: #30363d; border-color: #8b949e; }
+        button:disabled { cursor: not-allowed; opacity: 0.7; }
+        .correct { background-color: #238636 !important; color: white !important; }
+        .incorrect { background-color: #da3633 !important; color: white !important; }
+        .feedback { margin-top: 20px; padding: 15px; background-color: #0d1117; border-left: 4px solid #58a6ff; display: none; }
+        .next-btn { display: none; background-color: #1f6feb; color: white; text-align: center; margin-top: 20px; width: 100%; font-weight: bold; }
+        .next-btn:hover { background-color: #388bfd; }
+        .results-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .results-table th, .results-table td { border: 1px solid #30363d; padding: 10px; text-align: center; }
+        .results-table th { background-color: #21262d; }
+    </style>
 </head>
 <body>
 
-<h2>Cuestionario Interactivo de Estática - Lectura 2</h2>
-<p>Ejercicios aplicativos de R2 y R3: vectores, fuerzas, momentos, reacciones y cargas distribuidas.</p>
+    <h1>OPERACIÓN 20/20 - EXAMEN TÁCTICO</h1>
+    
+    <div id="quiz-container" class="card">
+        <div id="timer" class="timer">Tiempo: 20s</div>
+        <div id="progress" style="margin-bottom: 15px; color: #8b949e; font-size: 14px;">Pregunta 1 de 5</div>
+        <h2 id="question-text" style="font-size: 18px; text-align: left;"></h2>
+        <div id="options-container" class="options"></div>
+        
+        <div id="feedback-container" class="feedback">
+            <strong>Retroalimentación:</strong>
+            <p id="feedback-text"></p>
+        </div>
+        
+        <button id="next-btn" class="next-btn" onclick="nextQuestion()">Siguiente Pregunta</button>
+    </div>
 
-<div id="timer">Tiempo: 60 s</div>
-<div id="formulaBox"></div>
-<div id="question" class="question"></div>
-<form id="answers" class="quiz-form" autocomplete="off"></form>
+    <div id="results-container" class="card" style="display: none;">
+        <h2>Reporte de Desempeño</h2>
+        <h1 id="final-score" style="color: #3fb950; font-size: 48px;"></h1>
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Tema Analizado</th>
+                    <th>Aciertos</th>
+                </tr>
+            </thead>
+            <tbody id="analysis-body"></tbody>
+        </table>
+        <button class="next-btn" style="display: block; margin-top: 20px;" onclick="location.reload()">Reiniciar Simulación</button>
+    </div>
 
-<div id="result"></div>
+    <script>
+        const questions = [
+            {
+                topic: "Teoría de Vectores",
+                question: "Si la magnitud de una fuerza se multiplica por un escalar \\(s < 0\\), ¿cuál es el efecto geométrico sobre el vector resultante?",
+                options: [
+                    "Conserva la misma dirección y sentido.",
+                    "Su línea de acción se hace perpendicular.",
+                    "Mantiene la misma línea de acción, pero su sentido se invierte.",
+                    "Su magnitud se vuelve negativa geométricamente."
+                ],
+                correct: 2,
+                feedback: "Correcto. Según la teoría, si \\(s < 0\\), el vector \\(s\\vec{A}\\) mantiene la misma línea de acción, pero su sentido se invierte respecto de \\(\\vec{A}\\)."
+            },
+            {
+                topic: "Operaciones y Leyes (R2)",
+                question: "Al utilizar la ley de los cosenos para obtener la magnitud de la fuerza resultante de dos vectores \\(A\\) y \\(B\\), ¿cuál es la ecuación fundamental?",
+                options: [
+                    "\\(C = \\sqrt{A^2 + B^2 + 2AB \\sin c}\\)",
+                    "\\(C = \\sqrt{A^2 + B^2 - 2AB \\cos c}\\)",
+                    "\\(C = A + B - 2AB \\cos c\\)",
+                    "\\(\\frac{A}{\\sin a} = \\frac{B}{\\sin b}\\)"
+                ],
+                correct: 1,
+                feedback: "Excelente. La ley de los cosenos establece que \\(C = \\sqrt{A^2 + B^2 - 2AB \\cos c}\\)."
+            },
+            {
+                topic: "Descomposición (R3)",
+                question: "En la formulación de un vector en el espacio \\(\\mathbb{R}^3\\), ¿cómo se relaciona la magnitud del vector con sus ángulos directores?",
+                options: [
+                    "\\(\\vec{A} = A \\cos \\alpha \\vec{i} + A \\cos \\beta \\vec{j} + A \\cos \\gamma \\vec{k}\\)",
+                    "\\(\\vec{A} = A \\sin \\alpha \\vec{i} + A \\sin \\beta \\vec{j} + A \\sin \\gamma \\vec{k}\\)",
+                    "\\(\\vec{A} = \\sqrt{A_x^2 + A_y^2} \\vec{k}\\)",
+                    "\\(\\vec{A} = A \\tan \\alpha \\vec{i} + A \\cos \\beta \\vec{j}\\)"
+                ],
+                correct: 0,
+                feedback: "Preciso. El vector se expresa mediante sus cosenos directores como: \\(\\vec{A} = A \\cos \\alpha \\vec{i} + A \\cos \\beta \\vec{j} + A \\cos \\gamma \\vec{k}\\)."
+            },
+            {
+                topic: "Vector Posición",
+                question: "Dados los puntos \\(A(x_A, y_A, z_A)\\) y \\(B(x_B, y_B, z_B)\\), ¿cuál es la expresión correcta para el vector posición \\(\\vec{r}_{B/A}\\)?",
+                options: [
+                    "\\(\\vec{r}_{B/A} = (x_A - x_B)\\vec{i} + (y_A - y_B)\\vec{j} + (z_A - z_B)\\vec{k}\\)",
+                    "\\(\\vec{r}_{B/A} = (x_B + x_A)\\vec{i} + (y_B + y_A)\\vec{j} + (z_B + z_A)\\vec{k}\\)",
+                    "\\(\\vec{r}_{B/A} = (x_B - x_A)\\vec{i} + (y_B - y_A)\\vec{j} + (z_B - z_A)\\vec{k}\\)",
+                    "\\(\\vec{r}_{B/A} = \\frac{x_B}{x_A}\\vec{i} + \\frac{y_B}{y_A}\\vec{j} + \\frac{z_B}{z_A}\\vec{k}\\)"
+                ],
+                correct: 2,
+                feedback: "Correcto. El vector posición desde A hasta B se obtiene restando las coordenadas del origen a las del destino: \\(\\vec{r}_{B/A} = \\vec{r}_B - \\vec{r}_A\\)."
+            },
+            {
+                topic: "Producto Punto",
+                question: "¿Cuál es la formulación escalar que permite encontrar el ángulo \\(\\theta\\) entre dos vectores intersecantes en el espacio?",
+                options: [
+                    "\\(\\theta = \\tan^{-1}\\left(\\frac{A_y}{A_x}\\right)\\)",
+                    "\\(\\theta = \\cos^{-1}\\left(\\frac{A_x B_x + A_y B_y + A_z B_z}{|A||B|}\\right)\\)",
+                    "\\(\\theta = \\sin^{-1}\\left(\\frac{\\vec{A} \\cdot \\vec{B}}{|A| + |B|}\\right)\\)",
+                    "\\(\\theta = \\cos^{-1}(A_x B_x + A_y B_y + A_z B_z)\\)"
+                ],
+                correct: 1,
+                feedback: "Exacto. El producto punto \\(\\vec{A} \\cdot \\vec{B} = |A||B| \\cos \\theta\\) se despeja para hallar el ángulo: \\(\\theta = \\cos^{-1}\\left(\\frac{\\vec{A} \\cdot \\vec{B}}{|A||B|}\\right)\\)."
+            }
+        ]; // Puedes añadir las 35 preguntas restantes siguiendo este formato JSON.
 
-<script>
-// 40 preguntas de la Lectura 2
-const questions = [
-    /* Aquí debes pegar las 40 preguntas en formato JSON:
-       Cada pregunta debe tener: tema, dif, q, opts, ans, exp
-       Por ejemplo: */
-    {
-        "tema":"Vectores en R2",
-        "dif":"Básica aplicada",
-        "q":"Una fuerza de 50 N forma 60° con el eje +x. ¿Cuáles son sus componentes?",
-        "opts":["Fx=25 N, Fy=43.3 N","Fx=43.3 N, Fy=25 N","Fx=50 N, Fy=60 N","Fx=30 N, Fy=40 N"],
-        "ans":0,
-        "exp":"Fx = F cos60° = 25 N, Fy = F sen60° = 43.3 N."
-    },
-    {
-        "tema":"Vectores en R2",
-        "dif":"Básica aplicada",
-        "q":"Una fuerza F = 40i + 30j N. ¿Cuál es su magnitud?",
-        "opts":["50 N","70 N","10 N","100 N"],
-        "ans":0,
-        "exp":"|F| = √(40² + 30²) = 50 N."
-    }
-    // Agrega las otras 38 preguntas siguiendo el mismo formato
-];
+        let currentIndex = 0;
+        let score = 0;
+        let timeLeft = 20;
+        let timerInterval;
+        let stats = {};
 
-const formulaByTopic = {
-    "Vectores en R2":[["Fx = F cosθ","Componente horizontal."],["Fy = F senθ","Componente vertical."],["F = √(Fx² + Fy²)","Magnitud en R2."]],
-    "Vectores en R3":[["F = Fxi + Fyj + Fzk","Forma cartesiana."],["|F| = √(Fx² + Fy² + Fz²)","Magnitud R3."],["F = |F| u","Fuerza desde magnitud y dirección."]],
-    "Equilibrio de partícula en R3":[["ΣFx=0","Equilibrio x."],["ΣFy=0","Equilibrio y."],["ΣFz=0","Equilibrio z."]],
-    "Momento en R3":[["M = r × F","Momento vectorial."],["M = (yFz-zFy)i - (xFz-zFx)j + (xFy-yFx)k","Expansión cruz."]],
-    "Momento respecto a eje":[["M_eje = u · (r × F)","Momento sobre eje."]],
-    "Reacciones en apoyos R3":[["Rótula: Ax, Ay, Az","Tres fuerzas, sin momento."],["Empotramiento: Ax, Ay, Az, Mx, My, Mz","Seis incógnitas."]],
-    "Formulario estático R3":[["ΣFx=ΣFy=ΣFz=0","Fuerzas en equilibrio."],["ΣMx=ΣMy=ΣMz=0","Momentos en equilibrio."]]
-};
+        function initQuiz() {
+            questions.forEach(q => stats[q.topic] = { total: 0, correct: 0 });
+            loadQuestion();
+        }
 
-let current=0;
-let score=0;
-let timer=60; // 1 minuto por pregunta
-let interval=null;
+        function loadQuestion() {
+            clearInterval(timerInterval);
+            timeLeft = 20;
+            document.getElementById("timer").innerText = `Tiempo: ${timeLeft}s`;
+            
+            const q = questions[currentIndex];
+            document.getElementById("progress").innerText = `Pregunta ${currentIndex + 1} de ${questions.length} - [${q.topic}]`;
+            document.getElementById("question-text").innerHTML = q.question;
+            
+            const optsContainer = document.getElementById("options-container");
+            optsContainer.innerHTML = "";
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement("button");
+                btn.innerHTML = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                optsContainer.appendChild(btn);
+            });
 
-const $ = id => document.getElementById(id);
+            document.getElementById("feedback-container").style.display = "none";
+            document.getElementById("next-btn").style.display = "none";
+            
+            if (window.MathJax) { MathJax.typesetPromise(); }
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").innerText = `Tiempo: ${timeLeft}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    checkAnswer(-1, null); // Time's up
+                }
+            }, 1000);
+        }
 
-function startTimer() {
-    timer=60;
-    $("timer").textContent = "Tiempo: "+timer+" s";
-    interval = setInterval(()=>{
-        timer--;
-        $("timer").textContent = "Tiempo: "+timer+" s";
-        if(timer<=0){ clearInterval(interval); selectAnswer(null); }
-    },1000);
-}
+        function checkAnswer(selectedIndex, selectedBtn) {
+            clearInterval(timerInterval);
+            const q = questions[currentIndex];
+            const buttons = document.getElementById("options-container").querySelectorAll("button");
+            
+            stats[q.topic].total++;
+            
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === q.correct) {
+                    btn.classList.add("correct");
+                } else if (index === selectedIndex) {
+                    btn.classList.add("incorrect");
+                }
+            });
 
-function renderFormulaBox(topic) {
-    const box = $("formulaBox");
-    const formulas = formulaByTopic[topic] || [];
-    if(formulas.length==0){ box.style.display="none"; box.innerHTML=""; return; }
-    box.style.display="block";
-    box.innerHTML = `<h3>Fórmulas útiles para esta pregunta</h3><div class="formula-grid">`+
-        formulas.map(f=>`<div class="formula"><code>${f[0]}</code><small>${f[1]}</small></div>`).join('')+
-        `</div>`;
-}
+            if (selectedIndex === q.correct) {
+                score++;
+                stats[q.topic].correct++;
+            }
 
-function showQuestion() {
-    if(current>=questions.length){ showResult(); return; }
-    const q = questions[current];
-    $("question").textContent = q.q;
-    renderFormulaBox(q.tema);
-    const answers = $("answers");
-    answers.innerHTML = "";
-    q.opts.forEach((opt,idx)=>{
-        const label = document.createElement("label");
-        label.className="answer";
-        label.innerHTML = `<input type="radio" name="q${current}" value="${idx}"> ${opt}`;
-        label.onclick = ()=>selectAnswer(idx);
-        answers.appendChild(label);
-    });
-    startTimer();
-}
+            document.getElementById("feedback-text").innerHTML = selectedIndex === -1 ? "<strong>¡TIEMPO AGOTADO!</strong><br>" + q.feedback : q.feedback;
+            document.getElementById("feedback-container").style.display = "block";
+            document.getElementById("next-btn").style.display = "block";
+            
+            if (window.MathJax) { MathJax.typesetPromise(); }
+        }
 
-function selectAnswer(idx) {
-    clearInterval(interval);
-    const q = questions[current];
-    const labels = document.querySelectorAll("#answers label");
-    labels.forEach((label,i)=>{
-        label.querySelector("input").disabled=true;
-        if(i===q.ans) label.classList.add("correct");
-        if(idx!==null && i===idx && idx!==q.ans) label.classList.add("incorrect");
-    });
-    if(idx===q.ans) score+=0.5;
-    if(idx!==null) alert("Explicación: "+q.exp);
-    current++;
-    setTimeout(showQuestion,500);
-}
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
 
-function showResult() {
-    $("question").style.display="none";
-    $("answers").style.display="none";
-    $("timer").style.display="none";
-    $("formulaBox").style.display="none";
-    $("result").innerHTML=`<h3>Nota final: ${score}/20</h3>`+
-        `<p>Respondiste correctamente ${score/0.5} de ${questions.length} preguntas.</p>`+
-        `<p>Revisa los temas donde fallaste y practica R2 y R3.</p>`;
-}
+        function showResults() {
+            document.getElementById("quiz-container").style.display = "none";
+            document.getElementById("results-container").style.display = "block";
+            
+            const finalScorePercent = Math.round((score / questions.length) * 100);
+            document.getElementById("final-score").innerText = `${finalScorePercent}% (${score}/${questions.length})`;
+            
+            const tbody = document.getElementById("analysis-body");
+            for (const [topic, data] of Object.entries(stats)) {
+                const tr = document.createElement("tr");
+                const tdTopic = document.createElement("td");
+                const tdScore = document.createElement("td");
+                
+                tdTopic.innerText = topic;
+                tdScore.innerText = `${data.correct} / ${data.total} (${Math.round((data.correct/data.total)*100)}%)`;
+                
+                tr.appendChild(tdTopic);
+                tr.appendChild(tdScore);
+                tbody.appendChild(tr);
+            }
+        }
 
-showQuestion();
-</script>
+        window.onload = initQuiz;
+    </script>
 </body>
 </html>
